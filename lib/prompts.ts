@@ -9,6 +9,15 @@ export const askForSecretKey = async (): Promise<string> => {
   return secretKey || "";
 };
 
+export const askForApiKey = async (): Promise<string> => {
+  const { apiKey } = await inquirer.prompt<{ apiKey: string }>({
+    type: "input",
+    name: "apiKey",
+    message: "Enter an API key (or leave blank to generate one):",
+  });
+  return apiKey || "";
+};
+
 export const askForEmail = async (): Promise<string> => {
   const { email } = await inquirer.prompt<{ email: string }>({
     type: "input",

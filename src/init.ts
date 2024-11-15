@@ -1,5 +1,10 @@
-import { askForSecretKey, askForEmail } from "../lib/prompts.js";
-import { generateSecretKey, saveSecretKey, saveEmail } from "../lib/helpers.js";
+import { askForSecretKey, askForEmail, askForApiKey } from "../lib/prompts.js";
+import {
+  generateSecretKey,
+  saveSecretKey,
+  saveEmail,
+  saveApiKey,
+} from "../lib/helpers.js";
 import CONSTANTS from "../lib/constants.js";
 import path from "path";
 import boxen from "boxen";
@@ -40,13 +45,23 @@ export const init = async (): Promise<void> => {
 
   saveSecretKey(secretKey, envFilePath);
 
+  // ask for API key
+  const apiKeyInput = await askForApiKey();
+  const apiKey = apiKeyInput || generateSecretKey();
+
+  saveApiKey(apiKey, envFilePath);
+
   console.log(
     boxen(
-      `Your email      : ${chalk.yellow(
+      `Your email             : ${chalk.yellow(
         email
-      )}\nYour secret key : ${chalk.yellow(
+      )}\n\nYour secret key        : ${chalk.yellow(
         secretKey
-      )}\nKeep this somewhere safe.`,
+      )}\n${chalk.magenta("You will need this to use the SDKs.")}
+      \nYour dashboard API key : ${chalk.yellow(apiKey)}\n${chalk.magenta(
+        "You will need this to use the dashboard."
+      )}
+      \n${chalk.magenta("Store these keys somewhere safe.")}`,
       {
         padding: 1,
         margin: 1,

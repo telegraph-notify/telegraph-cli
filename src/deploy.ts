@@ -25,13 +25,12 @@ export const deploy = async (): Promise<void> => {
   }
 
   // Clone the CDK project
-  if (fs.existsSync(cdkRepoPath)) {
-    fs.rmSync(cdkRepoPath, { recursive: true, force: true });
-  }
-
   spinner.start("Cloning the telegraph-cdk repository...");
 
   try {
+    if (fs.existsSync(cdkRepoPath)) {
+      fs.rmSync(cdkRepoPath, { recursive: true, force: true });
+    }
     await new Promise((resolve, reject) => {
       shell.exec(
         `git clone ${CONSTANTS.REPO} ${cdkRepoPath}`,
@@ -121,7 +120,7 @@ export const deploy = async (): Promise<void> => {
 
   // Deploy the CDK application
   spinner.start(
-    "Deploying the Telegraph AWS resources... This could take up to ten minutes."
+    "Deploying the Telegraph AWS resources... This could take up to twenty minutes."
   );
   try {
     shell.cd(cdkRepoPath);
@@ -152,10 +151,9 @@ function handleDeploymentOutput() {
   const outputData = fs.readFileSync(`./${CONSTANTS.CDK_OUTPUT_FILE}`, "utf8");
   const outputs = JSON.parse(outputData);
 
-  const httpApiUrl =
-    outputs[`dev-prod-WebSocketGWStack-dev-prod`][`wssEndpointdevprod`];
   const websocketApiUrl =
-    outputs[`dev-prod-HttpGWStack-dev-prod`][`HttpApiInvokeUrldevprod`];
+    outputs[`prod-WebSocketGWStack-prod`][`wssEndpointprod`];
+  const httpApiUrl = outputs[`prod-HttpGWStack-prod`][`HttpApiInvokeUrlprod`];
 
   const envFileContent = fs.readFileSync(
     `${cdkRepoPath}/${CONSTANTS.ENV_FILE}`,
@@ -164,14 +162,18 @@ function handleDeploymentOutput() {
   const envLines = envFileContent.split("\n");
   const secretKeyLine = envLines.find((line) => line.startsWith("SECRET_KEY="));
   const secretKeyValue = secretKeyLine?.split("=")[1] || "defaultSecretKey";
+  const apiKeyLine = envLines.find((line) => line.startsWith("API_KEY="));
+  const apiKeyValue = apiKeyLine?.split("=")[1] || "defaultAPIKey";
 
   console.log(
     boxen(
-      `Your secret key   : ${chalk.yellow(
+      `Your secret key        : ${chalk.yellow(
         secretKeyValue
-      )}\nHTTP API URL      : ${chalk.yellow(
+      )}\nYour dashboard API key : ${chalk.yellow(
+        apiKeyValue
+      )}\n\nHTTP API URL           : ${chalk.yellow(
         httpApiUrl
-      )}\nWebSocket API URL : ${chalk.yellow(websocketApiUrl)}`,
+      )}\nWebSocket API URL      : ${chalk.yellow(websocketApiUrl)}`,
       {
         padding: 1,
         margin: 1,
